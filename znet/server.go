@@ -24,6 +24,17 @@ func NewServer(name string) ziface.IServer {
 	}
 }
 
+// 当前客户端链接所绑定的 handleAPI，目前写死
+func CallBackToClient(conn *net.TCPConn, data []byte, n int) error {
+	// 回显
+	fmt.Println("call back to client...")
+
+	if _, err := conn.Write(data[:n]); err != nil {
+		return err
+	}
+	return nil
+}
+
 // 启动服务器
 func (s *Server) Start() {
 	fmt.Printf("[Start] IP:%s, Port:%d\n", s.IP, s.Port)
@@ -44,6 +55,8 @@ func (s *Server) Start() {
 			return
 		}
 
+		var cid uint32 = 0 // 链接id
+
 		// 3. 阻塞的等待客户端连接，处理客户端连接业务（读写）
 		for {
 			// 有客户端连接
@@ -53,24 +66,11 @@ func (s *Server) Start() {
 				continue
 			}
 
-			// 以及与客户端建立连接，做业务（回显）
-			go func() {
-				for {
-					buf := make([]byte, 512)
-					n, err := conn.Read(buf)
-					if err != nil {
-						fmt.Println(err)
-						continue
-					}
+			// 有新链接就进行绑定
+			dealConn := NewConnection(conn, cid, CallBackToClient)
+			cid++
 
-					fmt.Println("get: ", string(buf[:n]))
-
-					if _, err = conn.Write(buf[:n]); err != nil {
-						fmt.Println(err)
-						continue
-					}
-				}
-			}()
+			go dealConn.Start()
 		}
 
 	}()

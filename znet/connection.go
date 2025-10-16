@@ -24,9 +24,31 @@ func NewConnection(conn *net.TCPConn, connID uint32, callBackAPI ziface.HandleFu
 	}
 }
 
+func (c *Connection) StartReader() {
+	fmt.Println("reader goroutine is running...")
+
+	defer c.Stop()
+	for {
+		buf := make([]byte, 512)
+		n, err := c.Conn.Read(buf)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		// 获取数据后，调用当前链接所绑定的handleAPI
+		if err = c.handleAPI(c.Conn, buf, n); err != nil {
+			fmt.Println(err)
+			break
+		}
+	}
+}
+
 func (c *Connection) Start() {
 	fmt.Println("starting... ", c.ConnID)
 
+	// 启动从当前链接的读数据业务
+	go c.StartReader()
+	// TODO 启动从当前链接的写数据业务
 }
 
 func (c *Connection) Stop() {

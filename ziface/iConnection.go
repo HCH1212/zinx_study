@@ -2,7 +2,7 @@ package ziface
 
 import "net"
 
-// 链接模块
+// 链接模块，处理conn
 type IConnection interface {
 	Start()                         // 启动链接 让当前链接准备开始工作
 	Stop()                          // 停止链接 结束当前链接的工作
