@@ -8,10 +8,11 @@ import (
 
 // IServer的接口实现
 type Server struct {
-	Name      string // 服务器名称
-	IPVersion string // 服务器绑定的ip版本（v4 or v6）
-	IP        string // 服务器监听的ip
-	Port      int    // 服务器监听的端口
+	Name      string         // 服务器名称
+	IPVersion string         // 服务器绑定的ip版本（v4 or v6）
+	IP        string         // 服务器监听的ip
+	Port      int            // 服务器监听的端口
+	Router    ziface.IRouter // 当前server的router
 }
 
 // 初始化模块
@@ -21,18 +22,8 @@ func NewServer(name string) ziface.IServer {
 		IPVersion: "tcp4",
 		IP:        "0.0.0.0",
 		Port:      8999,
+		Router:    nil,
 	}
-}
-
-// 当前客户端链接所绑定的 handleAPI，目前写死
-func CallBackToClient(conn *net.TCPConn, data []byte, n int) error {
-	// 回显
-	fmt.Println("call back to client...")
-
-	if _, err := conn.Write(data[:n]); err != nil {
-		return err
-	}
-	return nil
 }
 
 // 启动服务器
@@ -67,7 +58,7 @@ func (s *Server) Start() {
 			}
 
 			// 有新链接就进行绑定
-			dealConn := NewConnection(conn, cid, CallBackToClient)
+			dealConn := NewConnection(conn, cid, s.Router)
 			cid++
 
 			go dealConn.Start()
@@ -90,4 +81,9 @@ func (s *Server) Serve() {
 
 	// 阻塞状态
 	select {}
+}
+
+func (s *Server) AddRouter(router ziface.IRouter) {
+	s.Router = router
+	fmt.Println("add router success!")
 }
