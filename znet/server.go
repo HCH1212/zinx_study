@@ -3,6 +3,7 @@ package znet
 import (
 	"fmt"
 	"net"
+	"zinx_study/utils"
 	"zinx_study/ziface"
 )
 
@@ -18,17 +19,17 @@ type Server struct {
 // 初始化模块
 func NewServer(name string) ziface.IServer {
 	return &Server{
-		Name:      name,
+		Name:      utils.GlobalObject.Name,
 		IPVersion: "tcp4",
-		IP:        "0.0.0.0",
-		Port:      8999,
+		IP:        utils.GlobalObject.Host,
+		Port:      utils.GlobalObject.TcpPort,
 		Router:    nil,
 	}
 }
 
 // 启动服务器
 func (s *Server) Start() {
-	fmt.Printf("[Start] IP:%s, Port:%d\n", s.IP, s.Port)
+	fmt.Printf("[Zinx] 配置信息 %+v\n", utils.GlobalObject)
 
 	go func() {
 
